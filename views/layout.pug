@@ -6,7 +6,7 @@ html
     meta(name='viewport', content='width=device-width, initial-scale=1.0')
     meta(name='theme-color' content='#4DA5F4')
     meta(name='csrf-token', content=_csrf)
-    title #{title} - Hackathon Starter
+    title #{title} - Chart the Stock Market
     link(rel='shortcut icon', href='/favicon.png')
     link(rel='stylesheet', href='/css/main.css')
 
@@ -21,6 +21,10 @@ html
 
     script(src='/js/lib/jquery-3.1.1.min.js')
     script(src='/js/lib/bootstrap.min.js')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.bundle.js')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/axios/0.16.1/axios.js')
+    script(src='/socket.io/socket.io.js')
+    script(src='https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.4/lodash.js')
     script(src='/js/main.js')
 
     // Google Analytics: change UA-XXXXX-X to be your site's ID

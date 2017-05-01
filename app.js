@@ -25,7 +25,7 @@ const upload = multer({ dest: path.join(__dirname, 'uploads') });
 /**
  * Load environment variables from .env file, where API keys and passwords are configured.
  */
-dotenv.load({ path: '.env.example' });
+dotenv.load({ path: '.env' });
 
 /**
  * Controllers (route handlers).
@@ -44,6 +44,16 @@ const passportConfig = require('./config/passport');
  * Create Express server.
  */
 const app = express();
+const server = require('http').Server(app);
+
+/**
+ * Set up Socket.io middleware
+ */
+const io = require('socket.io')(server);
+// app.use(function(req, res, next) {
+//   req.io = io;
+//   next();
+// });
 
 /**
  * Connect to MongoDB.
@@ -62,7 +72,7 @@ mongoose.connection.on('error', (err) => {
 app.set('port', process.env.PORT || 3000);
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
-app.use(expressStatusMonitor());
+app.use(expressStatusMonitor({ websocket: io, port: app.get('port') }));
 app.use(compression());
 app.use(sass({
   src: path.join(__dirname, 'public'),
@@ -112,12 +122,15 @@ app.use((req, res, next) => {
   }
   next();
 });
-app.use(express.static(path.join(__dirname, 'public'), { maxAge: 31557600000 }));
+
+const maxAge = (process.env.NODE_ENV === 'production')? 31557600000 : 0;
+app.use(express.static(path.join(__dirname, 'public'), maxAge));
 
 /**
  * Primary app routes.
  */
 app.get('/', homeController.index);
+app.post('/', homeController.createTicker);
 app.get('/login', userController.getLogin);
 app.post('/login', userController.postLogin);
 app.get('/logout', userController.logout);
@@ -221,12 +234,28 @@ app.get('/auth/pinterest/callback', passport.authorize('pinterest', { failureRed
  */
 app.use(errorHandler());
 
+
+// io.on('connection', (socket) => {
+//   // socket.emit('greet', { hello: 'Hey there browser!' });
+//   socket.on('disconnect', () => {
+//     console.log('Socket disconnected');
+//   });
+// });
+
+const userIo = io.on('connection', (socket)=>{
+  homeController.createTicker(userIo, socket);
+  homeController.deleteTicker(userIo, socket);
+  homeController.getTickers(userIo, socket);
+  homeController.getData(userIo, socket);
+});
+
 /**
  * Start Express server.
  */
-app.listen(app.get('port'), () => {
+
+server.listen(app.get('port'), () => {
   console.log('%s App is running at http://localhost:%d in %s mode', chalk.green('✓'), app.get('port'), app.get('env')); 
   console.log('  Press CTRL-C to stop\n');
 });
 
-module.exports = app;
+module.exports = server;
