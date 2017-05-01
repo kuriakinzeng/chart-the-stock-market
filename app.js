@@ -123,8 +123,7 @@ app.use((req, res, next) => {
   next();
 });
 
-const maxAge = (process.env.NODE_ENV === 'production')? 31557600000 : 0;
-app.use(express.static(path.join(__dirname, 'public'), maxAge));
+app.use(express.static(path.join(__dirname, 'public'), {maxAge: 31557600000}));
 
 /**
  * Primary app routes.
